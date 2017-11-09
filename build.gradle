@@ -81,6 +81,13 @@ subprojects {
         }
     }
 
+    if (name == 'cn.com.agree.ab.a4.client.web') {
+        afterEvaluate {
+            project.dependencies.add 'compile', "${eclipseMavenGroup}:org.eclipse.jetty.security:+"
+            project.dependencies.add 'compile', "${eclipseMavenGroup}:javax.el:+"
+        }
+    }
+
     if (name == 'cn.com.agree.cocktail') {
         jar {
             from('src/cn/com/agree/cocktail/client.gif') {
