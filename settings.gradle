@@ -1,0 +1,34 @@
+apply from: 'bundles.gradle'
+
+def mappings = [
+        "adore": "cn.com.agree.adore2"
+]
+
+def filters = ["\\..*", "Api", "App*", "DaLianBank", "EVS", "HuiShangYinHang",
+        "LTS_Core", "Tools", "ZhangJiaGang", "Doc", "Deprecated",
+        "build", "gradle", "jiangnan", ".*\\.ads\\..*", "wuff"
+]
+
+if (ext.has("methods")) {
+    def bundles = ext.methods.getBundlePaths(rootDir, filters) as Map<String, File>
+//    def aft = new File(rootDir, "ab/AB_Client/Extend/_Device_Ext/cn.com.agree.ab.a4.client.adore.aft")
+//    def special = ext.methods.getBundlePaths(aft) as Map<String, File>
+//    bundles.putAll(special)
+    bundles.each { bundle ->
+        String key = bundle.key
+        File value = bundle.value
+        String mapping = mappings.get(key)
+        if (mapping) {
+            key = mapping
+        }
+        if (key.endsWith(".compatible")) {
+            return
+        }
+        if (key.endsWith(".imageviewer")) {
+            return
+        }
+        include key
+        project(":" + key).projectDir =
+                new File(value.getAbsolutePath())
+    }
+}

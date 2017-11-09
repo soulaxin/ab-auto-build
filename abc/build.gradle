@@ -1,0 +1,41 @@
+gradle.buildFinished {
+    File rootCefClient = new File(rootDir, 'ab/AB_Client/CEF/cn.com.agree.ab.a4.client.gui.adore/ROOT')
+    File logP = new File(rootCefClient, 'configuration/log4j.properties')
+    File abcP = new File(rootCefClient, 'configuration/abc.properties')
+    File engineD = new File(rootCefClient, 'interface/engine')
+
+    File output = new File(buildDir, 'output')
+    output.listFiles().each { file ->
+        if (file.isDirectory()) {
+            File engine = new File(file, 'interface/engine')
+            if (!engine.exists()) {
+                project.copy {
+                    from engineD
+                    into engine
+                }
+            }
+            File conf = new File(file, 'configuration')
+            if (conf.exists() && conf.isDirectory()) {
+                File log = new File(conf, 'log4j.properties')
+                if (!log.exists()) {
+                    project.copy {
+                        from logP
+                        into conf
+                    }
+                }
+                File abc = new File(conf, 'abc.properties')
+                if (!abc.exists()) {
+                    project.copy {
+                        from abcP
+                        into conf
+                    }
+                }
+                File config = new File(conf, 'config.ini')
+                project.copy {
+                    from new File(projectDir, 'config.ini')
+                    into conf
+                }
+            }
+        }
+    }
+}

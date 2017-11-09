@@ -1,0 +1,15 @@
+.gradle
+.idea
+*.iml
+build
+out
+.stamp*
+.grm
+.project
+.classpath
+log
+workspace
+classes
+ab
+adore
+wuff

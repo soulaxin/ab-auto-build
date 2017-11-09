@@ -1,0 +1,2 @@
+*.sh -text eof=lf
+gradlew -text eof=lf

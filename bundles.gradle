@@ -1,0 +1,36 @@
+if (ext) {
+    ext.methods = [
+            getBundlePaths: { dir, filters = [] ->
+                def bundles = [:] as Map<String, File>
+                def dirFile = dir
+                if (dir instanceof File) {
+                    dirFile = dir as File
+                } else if (dir instanceof String) {
+                    dirFile = new File(dir)
+                }
+                if (dirFile.isDirectory()) {
+                    File[] files = dirFile.listFiles()
+                    files.each { f ->
+                        def file = f as File
+                        def name = file.getName()
+                        for (String rule : filters) {
+                            if (name.matches(rule)) {
+                                logger.info "filter: " + name
+                                return
+                            }
+                        }
+                        Map<String, File> map = methods.getBundlePaths(file, filters)
+                        bundles.putAll(map)
+                    }
+                } else {
+                    String name = dirFile.getName()
+                    if ("build.properties" == name) {
+                        File parent = dirFile.getParentFile()
+                        bundles.put(parent.getName(), parent)
+                        logger.info "add bundle: " + parent.getName()
+                    }
+                }
+                return bundles
+            }
+    ]
+}
