@@ -6,20 +6,23 @@ buildscript {
 
     dependencies {
 //    classpath 'org.akhikhl.wuff:wuff-plugin:+'
-        /*
         def dir = new File(projectDir, 'wuff/libs/wuff-plugin/build')
         def clazz = new File(dir, 'classes/main')
         def resource = new File(dir, 'resources/main')
         classpath files(clazz, resource)
         classpath "org.akhikhl.unpuzzle:unpuzzle-plugin:0.0.22"
         classpath "commons-configuration:commons-configuration:1.10"
-        */
+
+        /*
         def wuff_plugins = new File(projectDir, 'plugins')
         classpath files(new File(wuff_plugins, 'wuff-plugin-0.0.20.1.jar'))
         classpath "org.akhikhl.unpuzzle:unpuzzle-plugin:0.0.22"
         classpath "commons-configuration:commons-configuration:1.10"
+        */
     }
 }
+
+def product_list = ['abc', 'abs']
 
 subprojects {
     repositories {
@@ -34,24 +37,11 @@ subprojects {
     targetCompatibility = 1.7
 
     [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
-    if (name == 'abc') {
-        apply plugin: 'org.akhikhl.wuff.eclipse-rcp-app'
-        products {
-            product jre: 'C:\\dev\\tools\\java\\32bit\\jdk1.7.0_51'
-//            archiveProducts = true
-//            additionalFilesToArchive = ["C:\\dev\\workspaces\\abc\\bundles.gradle"]
-            jvmArgs = ['-Djava.library.path=./interface/engine']
-        }
-        dependencies {
-            compile project(":cn.com.agree.ab.a4.client")
-            compile project(":cn.com.agree.ab.a4.pub.communication.mina")
-            compile project(":cn.com.agree.ab.a4.client.gui.adore.win32")
-            compile project(":cn.com.agree.ab.a4.client.preference")
-            compile project(":cn.com.agree.ab.a4.client.update.plugin")
-        }
-    } else {
-        apply plugin: 'org.akhikhl.wuff.eclipse-bundle'
+    if (product_list.contains(project.name)) {
+        return
     }
+
+    apply plugin: 'org.akhikhl.wuff.eclipse-bundle'
     wuff {
         selectedEclipseVersion = '4.3.2'
     }
@@ -85,6 +75,12 @@ subprojects {
         afterEvaluate {
             project.dependencies.add 'compile', "${eclipseMavenGroup}:org.eclipse.jetty.security:+"
             project.dependencies.add 'compile', "${eclipseMavenGroup}:javax.el:+"
+        }
+    }
+
+    if (name == 'cn.com.agree.ab.a4.server') {
+        afterEvaluate {
+            project.dependencies.add 'compile', "${eclipseMavenGroup}:org.eclipse.update.configurator:+"
         }
     }
 

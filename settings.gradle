@@ -1,4 +1,4 @@
-apply from: 'bundles.gradle'
+apply from: 'methods.gradle'
 
 def mappings = [
         "adore": "cn.com.agree.adore2"
@@ -11,9 +11,6 @@ def filters = ["\\..*", "Api", "App*", "DaLianBank", "EVS", "HuiShangYinHang",
 
 if (ext.has("methods")) {
     def bundles = ext.methods.getBundlePaths(rootDir, filters) as Map<String, File>
-//    def aft = new File(rootDir, "ab/AB_Client/Extend/_Device_Ext/cn.com.agree.ab.a4.client.adore.aft")
-//    def special = ext.methods.getBundlePaths(aft) as Map<String, File>
-//    bundles.putAll(special)
     bundles.each { bundle ->
         String key = bundle.key
         File value = bundle.value
@@ -32,3 +29,6 @@ if (ext.has("methods")) {
                 new File(value.getAbsolutePath())
     }
 }
+include 'abs'
+include 'abc'
+

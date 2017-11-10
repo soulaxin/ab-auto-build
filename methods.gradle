@@ -1,0 +1,93 @@
+if (ext) {
+    ext.methods = [
+            getBundlePaths: { dir, filters = [] ->
+                def bundles = [:] as Map<String, File>
+                def dirFile = dir
+                if (dir instanceof File) {
+                    dirFile = dir as File
+                } else if (dir instanceof String) {
+                    dirFile = new File(dir)
+                }
+                if (dirFile.isDirectory()) {
+                    File[] files = dirFile.listFiles()
+                    files.each { f ->
+                        def file = f as File
+                        def name = file.getName()
+                        for (String rule : filters) {
+                            if (name.matches(rule)) {
+                                logger.info "filter: " + name
+                                return
+                            }
+                        }
+                        Map<String, File> map = methods.getBundlePaths(file, filters)
+                        bundles.putAll(map)
+                    }
+                } else {
+                    String name = dirFile.getName()
+                    if ("build.properties" == name) {
+                        File parent = dirFile.getParentFile()
+                        bundles.put(parent.getName(), parent)
+                        logger.info "add bundle: " + parent.getName()
+                    }
+                }
+                return bundles
+            },
+            copyResources : { fileNames, sourceDir, targetDir, isOverride = false ->
+                def sourceDirFile = sourceDir
+                if (sourceDir instanceof File) {
+                    sourceDirFile = sourceDir as File
+                } else if (sourceDir instanceof String) {
+                    sourceDirFile = new File(sourceDir)
+                }
+                def targetDirFile = targetDir
+                if (targetDir instanceof File) {
+                    targetDirFile = targetDir as File
+                } else if (targetDir instanceof String) {
+                    targetDirFile = new File(targetDir)
+                }
+                if (!sourceDirFile.exists()) {
+                    return
+                }
+                def fileNameList = fileNames as List
+                fileNameList.each { fileName ->
+                    File file = new File(sourceDirFile, fileName)
+                    File copy = new File(targetDirFile, fileName)
+                    if (!isOverride && copy.exists()) {
+                        return
+                    }
+                    if (file.exists()) {
+                        project.copy {
+                            from file
+                            into targetDirFile
+                        }
+                        logger.info 'copy resource: ' + file + 'to ' + targetDirFile
+                    }
+                }
+            },
+            deleteBundle: { String bundleName, targetDir ->
+                def targetDirFile = targetDir
+                if (targetDir instanceof File) {
+                    targetDirFile = targetDir as File
+                } else if (targetDir instanceof String) {
+                    targetDirFile = new File(targetDir)
+                }
+                if (!targetDirFile.exists()) {
+                    return
+                }
+                File[] files = targetDirFile.listFiles(new FilenameFilter() {
+                    @Override
+                    boolean accept(File dir, String name) {
+                        if (name.startsWith(bundleName)) {
+                            return true
+                        }
+                        return false
+                    }
+                })
+                files.each { file ->
+                    if (file.delete()) {
+                        logger.info 'delete bundle: ' + file
+                    }
+                }
+            }
+    ]
+}

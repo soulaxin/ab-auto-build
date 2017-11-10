@@ -1,11 +1,8 @@
 apply plugin: 'org.akhikhl.wuff.eclipse-rcp-app'
 
 dependencies {
-    compile project(":cn.com.agree.ab.a4.client")
+    compile project(':cn.com.agree.ab.a4.server')
     compile project(":cn.com.agree.ab.a4.pub.communication.mina")
-    compile project(":cn.com.agree.ab.a4.client.gui.adore.win32")
-    compile project(":cn.com.agree.ab.a4.client.preference")
-    compile project(":cn.com.agree.ab.a4.client.update.plugin")
 }
 
 wuff {
@@ -13,39 +10,34 @@ wuff {
 }
 
 products {
-    product jre: 'C:\\dev\\tools\\java\\32bit\\jdk1.7.0_51'
-//            archiveProducts = true
-//            additionalFilesToArchive = ["C:\\dev\\workspaces\\abc\\bundles.gradle"]
-    jvmArgs = ['-Djava.library.path=./interface/engine']
+    nativeLauncher = false
+    product platform: 'windows', arch: 'x86_32', launchers: ['windows', 'shell'], jre: 'C:\\dev\\tools\\java\\32bit\\jdk1.7.0_51'
+    product platform: 'windows', arch: 'x86_64', launchers: ['windows', 'shell']
 }
 
 apply from: '../methods.gradle'
 
 gradle.buildFinished { buildResult ->
     if (buildResult.getFailure() != null) {
-        logger.info 'abc build product fail'
+        logger.info 'abs build product fail'
         return
     }
-    File rootCefClient = new File(rootDir, 'ab/AB_Client/CEF/cn.com.agree.ab.a4.client.gui.adore/ROOT')
+    File rootServer = new File(rootDir, 'ab/AB_Server/Basic/cn.com.agree.ab.a4.server/ROOT')
 
-    File source = new File(rootCefClient, 'configuration')
-    def fileNames = ['log4j.properties', 'abc.properties']
-    def engine = 'interface/engine'
+    File source = new File(rootServer, 'configuration')
+    def fileNames = ['log4j.properties', 'abs.properties', 'abs_share.properties', 'agree.ks', 'AB_TEST.lic']
 
     File output = new File(buildDir, 'output')
     File[] files = output.listFiles()
     Arrays.sort(files, new Comparator<File>() {
         @Override
         int compare(File o1, File o2) {
-            return (int) (o2.lastModified() - o1.lastModified());
+            return (int) (o2.lastModified() - o1.lastModified())
         }
     })
     if (files.length > 0) {
         File file = files[0] // get latest directory
         if (file.isDirectory()) {
-            def engineDir = new File(file, engine)
-            ext.methods.copyResources([engine], rootCefClient, engineDir)
-
             File target = new File(file, 'configuration')
             if (ext.has("methods")) {
                 ext.methods.copyResources(fileNames, source, target)
