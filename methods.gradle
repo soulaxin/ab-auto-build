@@ -1,6 +1,18 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        jcenter()
+    }
+    dependencies {
+        classpath "commons-configuration:commons-configuration:1.10"
+    }
+}
+
+import org.apache.commons.configuration.PropertiesConfiguration
+
 if (ext) {
     ext.methods = [
-            getBundlePaths: { dir, filters = [] ->
+            getBundlePaths  : { dir, filters = [] ->
                 def bundles = [:] as Map<String, File>
                 def dirFile = dir
                 if (dir instanceof File) {
@@ -32,7 +44,7 @@ if (ext) {
                 }
                 return bundles
             },
-            copyResources : { fileNames, sourceDir, targetDir, isOverride = false ->
+            copyResources   : { fileNames, sourceDir, targetDir, isOverride = false ->
                 def sourceDirFile = sourceDir
                 if (sourceDir instanceof File) {
                     sourceDirFile = sourceDir as File
@@ -54,17 +66,24 @@ if (ext) {
                     File copy = new File(targetDirFile, fileName)
                     if (!isOverride && copy.exists()) {
                         return
+                    } else if (copy.exists()) {
+                        def tmp = new File(targetDirFile, 'tmp')
+                        project.copy {
+                            from copy
+                            into tmp
+                        }
+                        logger.info 'backup resource: ' + copy + ' to ' + tmp
                     }
                     if (file.exists()) {
                         project.copy {
                             from file
                             into targetDirFile
                         }
-                        logger.info 'copy resource: ' + file + 'to ' + targetDirFile
+                        logger.info 'copy resource: ' + file + ' to ' + targetDirFile
                     }
                 }
             },
-            deleteBundle: { String bundleName, targetDir ->
+            deleteBundle    : { String bundleName, targetDir ->
                 def targetDirFile = targetDir
                 if (targetDir instanceof File) {
                     targetDirFile = targetDir as File
@@ -87,6 +106,89 @@ if (ext) {
                     if (file.delete()) {
                         logger.info 'delete bundle: ' + file
                     }
+                }
+            },
+            renameBundle    : { targetDir, String oldRule, String newRule ->
+                def targetDirFile = targetDir
+                if (targetDir instanceof File) {
+                    targetDirFile = targetDir as File
+                } else if (targetDir instanceof String) {
+                    targetDirFile = new File(targetDir)
+                }
+                if (targetDirFile.exists() && targetDirFile.isDirectory()) {
+                    File[] files = targetDirFile.listFiles(new FilenameFilter() {
+                        @Override
+                        boolean accept(File dir, String name) {
+                            if (name.endsWith('.jar')) {
+                                return true
+                            }
+                            return false
+                        }
+                    })
+                    files.each { file ->
+                        String name = file.getName()
+                        int index = name.indexOf(oldRule)
+                        if (index >= 0) {
+                            String newName = name.substring(0, index) + newRule + name.substring(index + 1)
+                            File newFile = new File(file.getParentFile(), newName)
+                            file.renameTo(newFile)
+                            logger.info 'rename bundle: ' + name + ' to ' + newName
+                        }
+                    }
+                }
+            },
+            changeProperties: { File propFile, String key, Object value ->
+                if (propFile.exists()) {
+                    def props = new PropertiesConfiguration()
+                    props.load(propFile)
+                    String old = props.getString(key)
+                    props.setProperty(key, value)
+                    props.save(propFile)
+                    logger.info 'change properties: key=' + key + ',old=' + old + ',new=' + value
+                }
+            },
+            deleteProperties: { File propFile, String key ->
+                if (propFile.exists()) {
+                    def props = new PropertiesConfiguration()
+                    props.load(propFile)
+                    props.clearProperty(key)
+                    props.save(propFile)
+                    logger.info 'delete properties: key=' + key
+                }
+            },
+            filterProperties: { File propFile, String key, rules ->
+                if (propFile.exists()) {
+                    def props = new PropertiesConfiguration()
+                    props.load(propFile)
+                    String[] bundles = props.getStringArray(key).toList()
+                    List ret = []
+                    bundles.each { bundle ->
+                        rules.each { rule ->
+                            if (!bundle.matches(rule)) {
+                                ret.add(bundle)
+                            } else {
+                                logger.info 'filter properties: bundle=' + bundle
+                            }
+                        }
+                    }
+                    props.setProperty(key, ret)
+                    props.save(propFile)
+                    logger.info 'change: key=' + key + ',old=' + bundles + ',new=' + props.getStringArray(key).toList()
+                }
+            },
+            changeConfig    : { config, String product ->
+                def configFile = config
+                if (config instanceof File) {
+                    configFile = config as File
+                } else if (config instanceof String) {
+                    configFile = new File(config)
+                }
+                if (ext.has("methods")) {
+                    ext.methods.changeProperties(configFile, 'eclipse.product', product)
+                    ext.methods.deleteProperties(configFile, 'org.osgi.framework.executionenvironment')
+                    // 过滤带下划线的bundle
+                    def rule = '.*[a-zA-Z2]_.*'
+                    ext.methods.filterProperties(configFile, 'osgi.bundles', [rule])
                 }
             }
     ]

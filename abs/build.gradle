@@ -3,6 +3,10 @@ apply plugin: 'org.akhikhl.wuff.eclipse-rcp-app'
 dependencies {
     compile project(':cn.com.agree.ab.a4.server')
     compile project(":cn.com.agree.ab.a4.pub.communication.mina")
+
+    compile project(":cn.com.agree.ab.a4.server.preference")
+    compile project(":cn.com.agree.ab.a4.server.resource")
+    compile project(":cn.com.agree.ab.a4.server.web")
 }
 
 wuff {
@@ -26,6 +30,8 @@ gradle.buildFinished { buildResult ->
 
     File source = new File(rootServer, 'configuration')
     def fileNames = ['log4j.properties', 'abs.properties', 'abs_share.properties', 'agree.ks', 'AB_TEST.lic']
+    File prefDir = new File(rootServer, 'preferenceServer')
+    def prefs = ['preference.properties', 'default.properties']
 
     File output = new File(buildDir, 'output')
     File[] files = output.listFiles()
@@ -41,11 +47,20 @@ gradle.buildFinished { buildResult ->
             File target = new File(file, 'configuration')
             if (ext.has("methods")) {
                 ext.methods.copyResources(fileNames, source, target)
-                ext.methods.copyResources(['config.ini'], projectDir, target, true)
+//                ext.methods.copyResources(['config.ini'], projectDir, target, true)
 
                 File plugins = new File(file, 'plugins')
                 ext.methods.deleteBundle(project.name, plugins)
             }
+            File prefFile = new File(file, 'preferenceServer')
+            if (ext.has("methods")) {
+                ext.methods.copyResources(prefs, prefDir, prefFile)
+            }
+            File config = new File(target, 'config.ini')
+            if (ext.has("methods")) {
+                ext.methods.changeConfig(config, 'cn.com.agree.ab.a4.server.product')
+            }
+            ext.methods.copyResources(['workspace'], rootServer, new File(file, 'workspace'))
         }
     }
 }

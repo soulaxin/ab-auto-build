@@ -6,19 +6,19 @@ buildscript {
 
     dependencies {
 //    classpath 'org.akhikhl.wuff:wuff-plugin:+'
+        /*
         def dir = new File(projectDir, 'wuff/libs/wuff-plugin/build')
         def clazz = new File(dir, 'classes/main')
         def resource = new File(dir, 'resources/main')
         classpath files(clazz, resource)
         classpath "org.akhikhl.unpuzzle:unpuzzle-plugin:0.0.22"
         classpath "commons-configuration:commons-configuration:1.10"
+        */
 
-        /*
         def wuff_plugins = new File(projectDir, 'plugins')
         classpath files(new File(wuff_plugins, 'wuff-plugin-0.0.20.1.jar'))
         classpath "org.akhikhl.unpuzzle:unpuzzle-plugin:0.0.22"
         classpath "commons-configuration:commons-configuration:1.10"
-        */
     }
 }
 
@@ -71,7 +71,7 @@ subprojects {
         }
     }
 
-    if (name == 'cn.com.agree.ab.a4.client.web') {
+    if (name == 'cn.com.agree.ab.a4.client.web' || name == 'cn.com.agree.ab.a4.server.web') {
         afterEvaluate {
             project.dependencies.add 'compile', "${eclipseMavenGroup}:org.eclipse.jetty.security:+"
             project.dependencies.add 'compile', "${eclipseMavenGroup}:javax.el:+"

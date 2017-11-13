@@ -49,10 +49,14 @@ gradle.buildFinished { buildResult ->
             File target = new File(file, 'configuration')
             if (ext.has("methods")) {
                 ext.methods.copyResources(fileNames, source, target)
-                ext.methods.copyResources(['config.ini'], projectDir, target, true)
+//                ext.methods.copyResources(['config.ini'], projectDir, target, true)
 
                 File plugins = new File(file, 'plugins')
                 ext.methods.deleteBundle(project.name, plugins)
+            }
+            File config = new File(target, 'config.ini')
+            if (ext.has("methods")) {
+                ext.methods.changeConfig(config, 'cn.com.agree.ab.a4.client.product')
             }
         }
     }
