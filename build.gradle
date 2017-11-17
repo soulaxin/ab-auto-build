@@ -104,4 +104,13 @@ subprojects {
             }
         }
     }
+
+    if (name == 'cn.com.agree.international') {
+        jar {
+            from('src/cn/com/agree/international') {
+                include '*.properties'
+                into 'cn/com/agree/international'
+            }
+        }
+    }
 }
