@@ -13,18 +13,28 @@ wuff {
 }
 
 products {
-    product jre: 'C:\\dev\\tools\\java\\32bit\\jdk1.7.0_51'
-//            archiveProducts = true
-//            additionalFilesToArchive = ["C:\\dev\\workspaces\\abc\\bundles.gradle"]
+//    product jre: 'C:\\dev\\tools\\java\\32bit\\jdk1.7.0_51'
+//    additionalFilesToArchive = ["C:\\dev\\workspaces\\abc\\bundles.gradle"]
     jvmArgs = ['-Djava.library.path=./interface/engine']
+    archiveProducts = true
 }
 
 apply from: '../methods.gradle'
 
-gradle.buildFinished { buildResult ->
-    if (buildResult.getFailure() != null) {
-        logger.info 'abc build product fail'
-        return
+afterEvaluate {
+    def buildProducts = tasks.findAll {
+        it.name.startsWith('buildProduct_')
+    }
+    buildProducts.each {
+        it.doLast {
+            println "beforeArchiveProduct: " + beforeArchiveProduct()
+        }
+    }
+}
+
+def beforeArchiveProduct() {
+    if (!ext.has("methods")) {
+        return false
     }
     File rootCefClient = new File(rootDir, 'ab/AB_Client/CEF/cn.com.agree.ab.a4.client.gui.adore/ROOT')
 
@@ -47,18 +57,14 @@ gradle.buildFinished { buildResult ->
             ext.methods.copyResources([engine], rootCefClient, engineDir)
 
             File target = new File(file, 'configuration')
-            if (ext.has("methods")) {
-                ext.methods.copyResources(fileNames, source, target)
-//                ext.methods.copyResources(['config.ini'], projectDir, target, true)
+            ext.methods.copyResources(fileNames, source, target)
 
-                File plugins = new File(file, 'plugins')
-                ext.methods.deleteBundle(project.name, plugins)
-            }
+            File plugins = new File(file, 'plugins')
+            ext.methods.deleteBundle(project.name, plugins)
             File config = new File(target, 'config.ini')
-            if (ext.has("methods")) {
-                ext.methods.changeProperties(config, 'eclipse.application', 'cn.com.agree.ab.a4.client.app')
-                ext.methods.changeConfig(config, 'cn.com.agree.ab.a4.client.product')
-            }
+            ext.methods.changeProperties(config, 'eclipse.application', 'cn.com.agree.ab.a4.client.app')
+            ext.methods.changeConfig(config, 'cn.com.agree.ab.a4.client.product')
         }
     }
+    return true
 }
