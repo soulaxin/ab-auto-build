@@ -56,6 +56,7 @@ gradle.buildFinished { buildResult ->
             }
             File config = new File(target, 'config.ini')
             if (ext.has("methods")) {
+                ext.methods.changeProperties(config, 'eclipse.application', 'cn.com.agree.ab.a4.client.app')
                 ext.methods.changeConfig(config, 'cn.com.agree.ab.a4.client.product')
             }
         }

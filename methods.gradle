@@ -185,10 +185,13 @@ if (ext) {
                 }
                 if (ext.has("methods")) {
                     ext.methods.changeProperties(configFile, 'eclipse.product', product)
+                    def baseBundles = 'org.eclipse.equinox.common@2:start,org.eclipse.update.configurator@3:start,org.eclipse.equinox.ds@2:start,org.eclipse.core.runtime@start'
+                    ext.methods.changeProperties(configFile, 'osgi.bundles', baseBundles)
                     ext.methods.deleteProperties(configFile, 'org.osgi.framework.executionenvironment')
+                    ext.methods.deleteProperties(configFile, 'osgi.framework')
                     // 过滤带下划线的bundle
-                    def rule = '.*[a-zA-Z2]_.*'
-                    ext.methods.filterProperties(configFile, 'osgi.bundles', [rule])
+//                    def rule = '.*[a-zA-Z2]_.*'
+//                    ext.methods.filterProperties(configFile, 'osgi.bundles', [rule])
                 }
             }
     ]

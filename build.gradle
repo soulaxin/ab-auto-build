@@ -23,6 +23,7 @@ buildscript {
 }
 
 def product_list = ['abc', 'abs']
+def eclipse_bundles = ['cn.com.agree.cocktail', 'cn.com.agree.ab.a4.client.gui.adore']
 
 subprojects {
     repositories {
@@ -40,8 +41,12 @@ subprojects {
     if (product_list.contains(project.name)) {
         return
     }
+    if (eclipse_bundles.contains(name)) {
+        apply plugin: 'org.akhikhl.wuff.eclipse-bundle'
+    } else {
+        apply plugin: 'org.akhikhl.wuff.osgi-bundle'
+    }
 
-    apply plugin: 'org.akhikhl.wuff.eclipse-bundle'
     wuff {
         selectedEclipseVersion = '4.3.2'
     }
@@ -71,7 +76,7 @@ subprojects {
         }
     }
 
-    if (name == 'cn.com.agree.ab.a4.client.web' || name == 'cn.com.agree.ab.a4.server.web') {
+    if (name == 'cn.com.agree.ab.a4.client.web') {
         afterEvaluate {
             project.dependencies.add 'compile', "${eclipseMavenGroup}:org.eclipse.jetty.security:+"
             project.dependencies.add 'compile', "${eclipseMavenGroup}:javax.el:+"
