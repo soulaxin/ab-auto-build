@@ -19,7 +19,7 @@ products {
     archiveProducts = true
 }
 
-apply from: '../methods.gradle'
+apply from: new File(rootDir, 'methods.gradle')
 
 afterEvaluate {
     def buildProducts = tasks.findAll {
@@ -27,6 +27,13 @@ afterEvaluate {
     }
     buildProducts.each {
         it.doLast {
+            def changelogTasks = tasks.findAll {
+                it.name.startsWith('changelog_')
+            }
+            changelogTasks.each {
+                println 'task start: ' + it
+                it.execute()
+            }
             println "beforeArchiveProduct: " + beforeArchiveProduct()
         }
     }
@@ -58,6 +65,8 @@ def beforeArchiveProduct() {
 
             File target = new File(file, 'configuration')
             ext.methods.copyResources(fileNames, source, target)
+
+            ext.methods.copyResourcesWithEncode(['changelog-ab.md', 'changelog-adore.md'], new File(buildDir, 'changelogs'), file, 'GBK', 'UTF-8')
 
             File plugins = new File(file, 'plugins')
             ext.methods.deleteBundle(project.name, plugins)

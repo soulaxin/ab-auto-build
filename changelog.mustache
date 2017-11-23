@@ -1,0 +1,16 @@
+# Generate {{repoName}} Changelog By {{ownerName}}
+
+{{#tags}}
+## {{name}}
+  {{#commits}}
+**{{{messageTitle}}}**
+
+ {{#messageBodyItems}}
+* {{.}}
+ {{/messageBodyItems}}
+
+***[{{hash}}] {{authorName}} &lt;{{{authorEmailAddress}}}&gt; {{commitTime}}***
+
+-----------------------
+  {{/commits}}
+{{/tags}}

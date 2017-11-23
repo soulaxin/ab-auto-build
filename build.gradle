@@ -19,6 +19,8 @@ buildscript {
         classpath files(new File(wuff_plugins, 'wuff-plugin-0.0.20.1.jar'))
         classpath "org.akhikhl.unpuzzle:unpuzzle-plugin:0.0.22"
         classpath "commons-configuration:commons-configuration:1.10"
+
+        classpath "se.bjurr.gitchangelog:git-changelog-gradle-plugin:+"
     }
 }
 
@@ -39,6 +41,8 @@ subprojects {
 
     [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
     if (product_list.contains(project.name)) {
+        apply plugin: "se.bjurr.gitchangelog.git-changelog-gradle-plugin"
+        apply from: new File(rootDir, 'changelog.gradle')
         return
     }
     if (eclipse_bundles.contains(name)) {

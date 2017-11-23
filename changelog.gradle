@@ -1,0 +1,39 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        jcenter()
+    }
+    dependencies {
+        classpath "se.bjurr.gitchangelog:git-changelog-gradle-plugin:+"
+    }
+}
+
+apply plugin: "se.bjurr.gitchangelog.git-changelog-gradle-plugin"
+
+def target = new File(buildDir, 'changelogs')
+
+Calendar c = Calendar.getInstance()
+c.add(Calendar.MONTH, -6)
+def beginDate = c.time // 半年内的记录
+
+task changelog_ab(type: se.bjurr.gitchangelog.plugin.gradle.GitChangelogTask) {
+    group 'changelog'
+    templateContent = new File(rootDir, 'changelog.mustache').getText("UTF-8")
+    fromRepo = new File(rootDir, 'ab')
+    file = new File(target, 'changelog-ab.md')
+    ignoreCommitsOlderThan = beginDate
+}
+task changelog_adore(type: se.bjurr.gitchangelog.plugin.gradle.GitChangelogTask) {
+    group 'changelog'
+    templateContent = new File(rootDir, 'changelog.mustache').getText("UTF-8")
+    fromRepo = new File(rootDir, 'adore')
+    file = new File(target, 'changelog-adore.md')
+    ignoreCommitsOlderThan = beginDate
+}
+task changelogs() {
+    group 'changelog'
+    def changelogTasks = tasks.findAll {
+        it.name.startsWith("changelog_")
+    }
+    dependsOn changelogTasks
+}

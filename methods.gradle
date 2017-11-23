@@ -12,7 +12,7 @@ import org.apache.commons.configuration.PropertiesConfiguration
 
 if (ext) {
     ext.methods = [
-            getBundlePaths  : { dir, filters = [] ->
+            getBundlePaths         : { dir, filters = [] ->
                 def bundles = [:] as Map<String, File>
                 def dirFile = dir
                 if (dir instanceof File) {
@@ -44,7 +44,38 @@ if (ext) {
                 }
                 return bundles
             },
-            copyResources   : { fileNames, sourceDir, targetDir, isOverride = false ->
+            copyResourcesWithEncode: { fileNames, sourceDir, targetDir, String inEncode, outEncode ->
+                def sourceDirFile = sourceDir
+                if (sourceDir instanceof File) {
+                    sourceDirFile = sourceDir as File
+                } else if (sourceDir instanceof String) {
+                    sourceDirFile = new File(sourceDir)
+                }
+                def targetDirFile = targetDir
+                if (targetDir instanceof File) {
+                    targetDirFile = targetDir as File
+                } else if (targetDir instanceof String) {
+                    targetDirFile = new File(targetDir)
+                }
+                if (!sourceDirFile.exists()) {
+                    return
+                }
+                def fileNameList = fileNames as List
+                fileNameList.each { fileName ->
+                    File file = new File(sourceDirFile, fileName)
+                    File copy = new File(targetDirFile, fileName)
+                    if (file.exists()) {
+                        if (!copy.exists()) {
+                            new FileOutputStream(copy).withWriter(outEncode) { writer ->
+                                new FileInputStream(file).withReader(inEncode) { reader ->
+                                    writer << reader
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            copyResources          : { fileNames, sourceDir, targetDir, isOverride = false ->
                 def sourceDirFile = sourceDir
                 if (sourceDir instanceof File) {
                     sourceDirFile = sourceDir as File
@@ -83,7 +114,7 @@ if (ext) {
                     }
                 }
             },
-            deleteBundle    : { String bundleName, targetDir ->
+            deleteBundle           : { String bundleName, targetDir ->
                 def targetDirFile = targetDir
                 if (targetDir instanceof File) {
                     targetDirFile = targetDir as File
@@ -108,7 +139,7 @@ if (ext) {
                     }
                 }
             },
-            renameBundle    : { targetDir, String oldRule, String newRule ->
+            renameBundle           : { targetDir, String oldRule, String newRule ->
                 def targetDirFile = targetDir
                 if (targetDir instanceof File) {
                     targetDirFile = targetDir as File
@@ -137,7 +168,7 @@ if (ext) {
                     }
                 }
             },
-            changeProperties: { File propFile, String key, Object value ->
+            changeProperties       : { File propFile, String key, Object value ->
                 if (propFile.exists()) {
                     def props = new PropertiesConfiguration()
                     props.load(propFile)
@@ -147,7 +178,7 @@ if (ext) {
                     logger.info 'change properties: key=' + key + ',old=' + old + ',new=' + value
                 }
             },
-            deleteProperties: { File propFile, String key ->
+            deleteProperties       : { File propFile, String key ->
                 if (propFile.exists()) {
                     def props = new PropertiesConfiguration()
                     props.load(propFile)
@@ -156,7 +187,7 @@ if (ext) {
                     logger.info 'delete properties: key=' + key
                 }
             },
-            filterProperties: { File propFile, String key, rules ->
+            filterProperties       : { File propFile, String key, rules ->
                 if (propFile.exists()) {
                     def props = new PropertiesConfiguration()
                     props.load(propFile)
@@ -176,7 +207,7 @@ if (ext) {
                     logger.info 'change: key=' + key + ',old=' + bundles + ',new=' + props.getStringArray(key).toList()
                 }
             },
-            changeConfig    : { config, String product ->
+            changeConfig           : { config, String product ->
                 def configFile = config
                 if (config instanceof File) {
                     configFile = config as File

@@ -20,7 +20,7 @@ products {
     archiveProducts = true
 }
 
-apply from: '../methods.gradle'
+apply from: new File(rootDir, 'methods.gradle')
 
 afterEvaluate {
     def buildProducts = tasks.findAll {
@@ -28,6 +28,13 @@ afterEvaluate {
     }
     buildProducts.each {
         it.doLast {
+            def changelogTasks = tasks.findAll {
+                it.name.startsWith('changelog_')
+            }
+            changelogTasks.each {
+                println 'task start: ' + it
+                it.execute()
+            }
             println "beforeArchiveProduct: " + beforeArchiveProduct()
         }
     }
@@ -68,6 +75,8 @@ def beforeArchiveProduct() {
             ext.methods.changeConfig(config, 'cn.com.agree.ab.a4.server.product')
 
 //            ext.methods.copyResources(['workspace'], rootServer, new File(file, 'workspace'))
+
+            ext.methods.copyResourcesWithEncode(['changelog-ab.md', 'changelog-adore.md'], new File(buildDir, 'changelogs'), file, 'GBK', 'UTF-8')
         }
     }
     return true
