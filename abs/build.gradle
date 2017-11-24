@@ -50,6 +50,8 @@ def beforeArchiveProduct() {
     def fileNames = ['log4j.properties', 'abs.properties', 'abs_share.properties', 'agree.ks', 'AB_TEST.lic']
     File prefDir = new File(rootServer, 'preferenceServer')
     def prefs = ['preference.properties', 'default.properties']
+    File csdDir = new File(rootServer, 'csdKey')
+    def csd = ['jetty.crt', 'keystore']
 
     File output = new File(buildDir, 'output')
     File[] files = output.listFiles()
@@ -70,6 +72,9 @@ def beforeArchiveProduct() {
 
             File prefFile = new File(file, 'preferenceServer')
             ext.methods.copyResources(prefs, prefDir, prefFile)
+
+            File csdFile = new File(file, 'csdKey')
+            ext.methods.copyResources(csd, csdDir, csdFile)
 
             File config = new File(target, 'config.ini')
             ext.methods.changeConfig(config, 'cn.com.agree.ab.a4.server.product')
