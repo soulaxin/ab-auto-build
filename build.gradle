@@ -1,7 +1,11 @@
 buildscript {
     repositories {
         mavenLocal()
-        jcenter()
+//        mavenCentral()
+//        jcenter()
+        maven {
+            url 'http://192.9.200.153:8081/nexus/content/groups/public/'
+        }
     }
 
     dependencies {
@@ -22,24 +26,29 @@ buildscript {
     }
 }
 
+ext.eclipseVersion = '4.7.1a'
+
 def product_list = ['abc', 'abs']
 def eclipse_bundles = ['cn.com.agree.cocktail', 'cn.com.agree.ab.a4.client.gui.adore']
 
 subprojects {
     repositories {
-        mavenLocal()
-        jcenter()
+//        mavenLocal()
+//        mavenCentral()
+//        jcenter()
+        maven {
+            url 'http://192.9.200.153:8081/nexus/content/groups/public/'
+        }
     }
 
     apply plugin: 'java'
 
     // JVM 版本号要求
-    sourceCompatibility = 1.7
-    targetCompatibility = 1.7
+//    sourceCompatibility = 1.7
+//    targetCompatibility = 1.7
 
     [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
     if (product_list.contains(project.name)) {
-        apply plugin: "se.bjurr.gitchangelog.git-changelog-gradle-plugin"
         apply from: new File(rootDir, 'changelog.gradle')
         return
     }
@@ -50,7 +59,7 @@ subprojects {
     }
 
     wuff {
-        selectedEclipseVersion = '4.3.2'
+        selectedEclipseVersion = rootProject.ext.eclipseVersion
     }
     if (name == 'cn.com.agree.ab.a4.client') {
         def sourcePath = 'src/cn/com/agree/ab/a4/client/'
@@ -60,6 +69,14 @@ subprojects {
         jar {
             from(source) {
                 into targetPath
+            }
+        }
+
+        if (rootProject.ext.eclipseVersion == '4.7.1a') {
+            afterEvaluate {
+                project.dependencies.add 'compile', "${eclipseMavenGroup}:org.apache.batik.util:+"
+                project.dependencies.add 'compile', "${eclipseMavenGroup}:org.eclipse.osgi.util:+"
+                project.dependencies.add 'compile', "${eclipseMavenGroup}:org.eclipse.e4.core.di.extensions.supplier:+"
             }
         }
     }

@@ -1,7 +1,11 @@
 buildscript {
     repositories {
-        mavenLocal()
-        jcenter()
+//        mavenLocal()
+//        mavenCentral()
+//        jcenter()
+        maven {
+            url 'http://192.9.200.153:8081/nexus/content/groups/public/'
+        }
     }
     dependencies {
         classpath "commons-configuration:commons-configuration:1.10"

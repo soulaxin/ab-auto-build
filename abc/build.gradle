@@ -9,11 +9,12 @@ dependencies {
 }
 
 wuff {
-    selectedEclipseVersion = '4.3.2'
+    selectedEclipseVersion = rootProject.ext.eclipseVersion
 }
 
 products {
-//    product jre: 'C:\\dev\\tools\\java\\32bit\\jdk1.7.0_51'
+//    product jre: 'C:\\dev\\tools\\java\\32bit\\jdk1.7.0_51\\jre'
+    product jre: 'C:\\dev\\tools\\java\\32bit\\jdk-8u112-windows-x86\\jre'
 //    additionalFilesToArchive = ["C:\\dev\\workspaces\\abc\\bundles.gradle"]
     jvmArgs = ['-Djava.library.path=./interface/engine']
     archiveProducts = true
