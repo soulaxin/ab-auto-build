@@ -10,7 +10,8 @@ out
 log
 workspace
 classes
-ab
-adore
-wuff
+/ab
+/adore
+/wuff
 .metadata
+/eclipse_plugins
