@@ -1,6 +1,6 @@
 buildscript {
     repositories {
-        mavenLocal()
+//        mavenLocal()
 //        mavenCentral()
 //        jcenter()
         maven {
@@ -14,22 +14,23 @@ buildscript {
         classpath "org.akhikhl.unpuzzle:unpuzzle-plugin:0.0.22"
         classpath "commons-configuration:commons-configuration:1.10"
 
-//        def dir = new File(projectDir, 'wuff/libs/wuff-plugin/build')
+//        def dir = new File(rootDir, 'wuff/libs/wuff-plugin/build')
 //        def clazz = new File(dir, 'classes/main')
 //        def resource = new File(dir, 'resources/main')
 //        classpath files(clazz, resource)
 
-        def wuff_plugins = new File(projectDir, 'plugins')
+        def wuff_plugins = new File(rootDir, 'plugins')
         classpath files(new File(wuff_plugins, 'wuff-plugin-0.0.20.1.jar'))
 
-        classpath "se.bjurr.gitchangelog:git-changelog-gradle-plugin:+"
+        classpath "se.bjurr.gitchangelog:git-changelog-gradle-plugin:1.53"
     }
 }
 
-ext.eclipseVersion = '4.7.1a'
+ext.eclipseVersion = '4.7.1a' as String
+ext.eclipsePlugins = 'eclipse_plugins' as String
 
-def product_list = ['abc', 'abs']
-def eclipse_bundles = ['cn.com.agree.cocktail', 'cn.com.agree.ab.a4.client.gui.adore']
+ext.product_list = ['abc', 'abs'] as List
+ext.eclipse_bundles = ['cn.com.agree.cocktail', 'cn.com.agree.ab.a4.client.gui.adore'] as List
 
 subprojects {
     repositories {
@@ -48,11 +49,11 @@ subprojects {
 //    targetCompatibility = 1.7
 
     [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
-    if (product_list.contains(project.name)) {
+    if (rootProject.ext.product_list.contains(project.name)) {
         apply from: new File(rootDir, 'changelog.gradle')
         return
     }
-    if (eclipse_bundles.contains(name)) {
+    if (rootProject.ext.eclipse_bundles.contains(project.name)) {
         apply plugin: 'org.akhikhl.wuff.eclipse-bundle'
     } else {
         apply plugin: 'org.akhikhl.wuff.osgi-bundle'
@@ -60,6 +61,8 @@ subprojects {
 
     wuff {
         selectedEclipseVersion = rootProject.ext.eclipseVersion
+        wuffDir = new File(rootDir, rootProject.ext.eclipsePlugins as String)
+        localMavenRepositoryDir = new File(wuffDir, 'm2_repository')
     }
     if (name == 'cn.com.agree.ab.a4.client') {
         def sourcePath = 'src/cn/com/agree/ab/a4/client/'
