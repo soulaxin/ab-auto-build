@@ -20,6 +20,8 @@ products {
 //    product platform: 'windows', arch: 'x86_32', launchers: ['windows', 'shell'], jre: 'C:\\dev\\tools\\java\\32bit\\jdk1.7.0_51\jre'
     product platform: 'windows', arch: 'x86_32', launchers: ['windows', 'shell']//, jre: 'C:\\dev\\tools\\java\\32bit\\jdk-8u112-windows-x86\\jre'
     product platform: 'windows', arch: 'x86_64', launchers: ['windows', 'shell']
+    product platform: 'linux', arch: 'x86_32', launchers: ['windows', 'shell']
+    product platform: 'linux', arch: 'x86_64', launchers: ['windows', 'shell']
     archiveProducts = true
 }
 
