@@ -34,7 +34,7 @@ ext.eclipse_bundles = ['cn.com.agree.cocktail', 'cn.com.agree.ab.a4.client.gui.a
 
 subprojects {
     repositories {
-//        mavenLocal()
+        mavenLocal()
 //        mavenCentral()
 //        jcenter()
         maven {
