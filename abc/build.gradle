@@ -19,6 +19,7 @@ products {
 //    product jre: 'C:\\dev\\tools\\java\\32bit\\jdk-8u112-windows-x86\\jre'
 //    additionalFilesToArchive = ["C:\\dev\\workspaces\\abc\\bundles.gradle"]
     jvmArgs = ['-Djava.library.path=./interface/engine']
+    product platform: 'windows', arch: 'x86_32', launchers: ['windows']
     archiveProducts = true
 }
 
