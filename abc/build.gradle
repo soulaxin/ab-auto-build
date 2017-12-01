@@ -20,6 +20,9 @@ products {
 //    additionalFilesToArchive = ["C:\\dev\\workspaces\\abc\\bundles.gradle"]
     jvmArgs = ['-Djava.library.path=./interface/engine']
     product platform: 'windows', arch: 'x86_32', launchers: ['windows']
+    product platform: 'windows', arch: 'x86_64', launchers: ['windows']
+    product platform: 'linux', arch: 'x86_32', launchers: ['windows']
+    product platform: 'linux', arch: 'x86_64', launchers: ['windows']
     archiveProducts = true
 }
 
