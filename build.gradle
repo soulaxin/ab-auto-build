@@ -28,6 +28,7 @@ buildscript {
 
 ext.eclipseVersion = '4.7.1a' as String
 ext.eclipsePlugins = 'eclipse_plugins' as String
+ext.productVersion = 'version' as String
 
 ext.product_list = ['abc', 'abs'] as List
 ext.eclipse_bundles = ['cn.com.agree.cocktail', 'cn.com.agree.ab.a4.client.gui.adore'] as List
