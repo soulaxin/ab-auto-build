@@ -27,6 +27,11 @@ buildscript {
 }
 
 ext.eclipseVersion = '4.7.1a' as String
+if (hasProperty("EV")) {
+    ext.eclipseVersion = "$EV"
+}
+logger.println "use eclipse version: " + ext.eclipseVersion
+
 ext.eclipsePlugins = 'eclipse_plugins' as String
 ext.productVersion = 'version' as String
 
