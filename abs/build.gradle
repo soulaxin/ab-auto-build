@@ -88,7 +88,7 @@ def beforeArchiveProduct() {
 
 //            ext.methods.copyResources(['workspace'], rootServer, new File(file, 'workspace'))
 
-            ext.methods.copyResourcesWithEncode(['changelog-ab.md', 'changelog-adore.md'], new File(buildDir, 'changelogs'), file, 'GBK', 'UTF-8')
+            ext.methods.copyResourcesWithEncode(['changelog-ab.md', 'changelog-adore.md'], new File(buildDir, 'changelogs'), file, rootProject.ext.encoding, 'UTF-8')
         }
     }
     return true

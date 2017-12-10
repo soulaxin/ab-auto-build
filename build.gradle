@@ -1,3 +1,5 @@
+import java.nio.charset.Charset
+
 buildscript {
     repositories {
         mavenLocal()
@@ -30,7 +32,10 @@ ext.eclipseVersion = '4.7.1a' as String
 if (hasProperty("EV")) {
     ext.eclipseVersion = "$EV"
 }
-logger.println "use eclipse version: " + ext.eclipseVersion
+ext.encoding = Charset.defaultCharset().name()
+logger.println "use eclipse version: " + rootProject.ext.eclipseVersion
+logger.println "use file encoding: " + rootProject.ext.encoding
+
 
 ext.eclipsePlugins = 'eclipse_plugins' as String
 ext.productVersion = 'version' as String

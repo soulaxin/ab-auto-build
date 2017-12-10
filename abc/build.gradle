@@ -75,7 +75,7 @@ def beforeArchiveProduct() {
             File target = new File(file, 'configuration')
             ext.methods.copyResources(fileNames, source, target)
 
-            ext.methods.copyResourcesWithEncode(['changelog-ab.md', 'changelog-adore.md'], new File(buildDir, 'changelogs'), file, 'GBK', 'UTF-8')
+            ext.methods.copyResourcesWithEncode(['changelog-ab.md', 'changelog-adore.md'], new File(buildDir, 'changelogs'), file, rootProject.ext.encoding, 'UTF-8')
 
             File plugins = new File(file, 'plugins')
             ext.methods.deleteBundle(project.name, plugins)
