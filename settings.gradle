@@ -7,7 +7,8 @@ def mappings = [
 def filters = ["\\..*", "Api", "App*", "DaLianBank", "EVS", "HuiShangYinHang",
         "LTS_Core", "Tools", "ZhangJiaGang", "Doc", "Deprecated",
         "build", "gradle", "jiangnan", ".*\\.ads\\..*", "wuff",
-        "eclipse_plugins"
+        "eclipse_plugins", "KunShanNongShang", "ZhangJiaGang", "ZhengZhouYinHang",
+        "DaLianBank"
 ]
 
 if (ext.has("methods")) {
