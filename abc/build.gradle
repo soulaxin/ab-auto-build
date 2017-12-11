@@ -19,7 +19,9 @@ products {
 //    product jre: 'C:\\dev\\tools\\java\\32bit\\jdk-8u112-windows-x86\\jre'
 //    additionalFilesToArchive = ["C:\\dev\\workspaces\\abc\\bundles.gradle"]
     jvmArgs = ['-Djava.library.path=./interface/engine']
-    product platform: 'windows', arch: 'x86_32', launchers: ['windows']
+    String javaHome = System.getProperty("java.home")
+    javaHome.endsWith("jre") ? javaHome : javaHome + "/jre"
+    product platform: 'windows', arch: 'x86_32', launchers: ['windows'], jre: javaHome
     product platform: 'windows', arch: 'x86_64', launchers: ['windows']
     product platform: 'linux', arch: 'x86_32', launchers: ['windows']
     product platform: 'linux', arch: 'x86_64', launchers: ['windows']
