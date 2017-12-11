@@ -38,7 +38,10 @@ logger.println "use file encoding: " + rootProject.ext.encoding
 
 
 ext.eclipsePlugins = 'eclipse_plugins' as String
-ext.productVersion = 'version' as String
+ext.productVersion = '' as String
+if (hasProperty("V")) {
+    ext.productVersion = "$V"
+}
 
 ext.product_list = ['abc', 'abs'] as List
 ext.eclipse_bundles = ['cn.com.agree.cocktail', 'cn.com.agree.ab.a4.client.gui.adore'] as List
@@ -62,6 +65,10 @@ subprojects {
     [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
     if (rootProject.ext.product_list.contains(project.name)) {
         apply from: new File(rootDir, 'changelog.gradle')
+
+        if (rootProject.ext.productVersion) {
+            version = rootProject.ext.productVersion
+        }
         return
     }
     if (rootProject.ext.eclipse_bundles.contains(project.name)) {

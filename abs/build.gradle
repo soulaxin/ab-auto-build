@@ -9,8 +9,6 @@ dependencies {
     compile project(":cn.com.agree.ab.a4.server.web")
 }
 
-version = rootProject.ext.productVersion
-
 wuff {
     selectedEclipseVersion = rootProject.ext.eclipseVersion
     wuffDir = new File(rootDir, rootProject.ext.eclipsePlugins as String)
