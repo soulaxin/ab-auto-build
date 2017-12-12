@@ -79,10 +79,15 @@ def beforeArchiveProduct() {
 
             File plugins = new File(file, 'plugins')
 
-            ext.methods.copyResources(['org.eclipse.osgi_3.12.0.v20171026-1932-agree.jar'], new File(rootDir, 'plugins'), plugins)
+            ext.methods.deleteBundle('org.eclipse.osgi_.*-\\d+.jar', plugins)
+            // 先删除在复制
+            if (rootProject.ext.eclipseVersion == '4.7.1a') {
+                ext.methods.copyResources(['org.eclipse.osgi_3.12.0.v20171026-1932-agree.jar'], new File(rootDir, 'plugins'), plugins)
+            } else if (rootProject.ext.eclipseVersion == '4.3.2') {
+                ext.methods.copyResources(['org.eclipse.osgi_3.9.1.v20140111-1611.jar'], new File(rootDir, 'plugins'), plugins)
+            }
 
             ext.methods.deleteBundle(project.name, plugins)
-            ext.methods.deleteBundle('org.eclipse.osgi_.*-\\d+.jar', plugins)
             File config = new File(target, 'config.ini')
             ext.methods.changeProperties(config, 'eclipse.application', 'cn.com.agree.ab.a4.client.app')
             ext.methods.changeConfig(config, 'cn.com.agree.ab.a4.client.product')
