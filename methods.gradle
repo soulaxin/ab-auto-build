@@ -134,6 +134,9 @@ if (ext) {
                         if (name.startsWith(bundleName)) {
                             return true
                         }
+                        if (name.matches(bundleName)) {
+                            return true
+                        }
                         return false
                     }
                 })

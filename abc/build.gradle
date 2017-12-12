@@ -78,7 +78,11 @@ def beforeArchiveProduct() {
             ext.methods.copyResourcesWithEncode(['changelog-ab.md', 'changelog-adore.md'], new File(buildDir, 'changelogs'), file, rootProject.ext.encoding, 'UTF-8')
 
             File plugins = new File(file, 'plugins')
+
+            ext.methods.copyResources(['org.eclipse.osgi_3.12.0.v20171026-1932-agree.jar'], new File(rootDir, 'plugins'), plugins)
+
             ext.methods.deleteBundle(project.name, plugins)
+            ext.methods.deleteBundle('org.eclipse.osgi_.*-\\d+.jar', plugins)
             File config = new File(target, 'config.ini')
             ext.methods.changeProperties(config, 'eclipse.application', 'cn.com.agree.ab.a4.client.app')
             ext.methods.changeConfig(config, 'cn.com.agree.ab.a4.client.product')
