@@ -78,6 +78,13 @@ def beforeArchiveProduct() {
 
             ext.methods.deleteBundle(project.name, plugins)
             ext.methods.deleteBundle('org.eclipse.osgi_.*-\\d+.jar', plugins)
+            ext.methods.deleteBundle('org.w3c.*\\d+.jar', plugins)
+            ext.methods.deleteBundle('org.eclipse.e4.emf.*-\\d+.jar', plugins)
+            ext.methods.deleteBundle('org.eclipse.e4.ui.*-\\d+.jar', plugins)
+            ext.methods.deleteBundle('org.eclipse.emf.*-\\d+.jar', plugins)
+            ext.methods.deleteBundle('org.eclipse.ui.*-\\d+.jar', plugins)
+            ext.methods.deleteBundle('org.eclipse.swt.*-\\d+.jar', plugins)
+            ext.methods.deleteBundle('org.eclipse.jface.*-\\d+.jar', plugins)
 
             File prefFile = new File(file, 'preferenceServer')
             ext.methods.copyResources(prefs, prefDir, prefFile)
