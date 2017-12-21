@@ -10,8 +10,11 @@ dependencies {
 
 wuff {
     selectedEclipseVersion = rootProject.ext.eclipseVersion
-    wuffDir = new File(rootDir, rootProject.ext.eclipsePlugins as String)
-    localMavenRepositoryDir = new File(wuffDir, 'm2_repository')
+    if (rootProject.hasProperty("EP")) {
+        String ep = rootProject.property("EP")
+        wuffDir = new File(rootDir, ep)
+        localMavenRepositoryDir = new File(wuffDir, 'm2_repository')
+    }
 }
 
 products {

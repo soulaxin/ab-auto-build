@@ -36,8 +36,6 @@ ext.encoding = Charset.defaultCharset().name()
 logger.println "use eclipse version: " + rootProject.ext.eclipseVersion
 logger.println "use file encoding: " + rootProject.ext.encoding
 
-
-ext.eclipsePlugins = 'eclipse_plugins' as String
 ext.productVersion = '' as String
 if (hasProperty("V")) {
     ext.productVersion = "$V"
@@ -79,8 +77,11 @@ subprojects {
 
     wuff {
         selectedEclipseVersion = rootProject.ext.eclipseVersion
-        wuffDir = new File(rootDir, rootProject.ext.eclipsePlugins as String)
-        localMavenRepositoryDir = new File(wuffDir, 'm2_repository')
+        if (rootProject.hasProperty("EP")) {
+            String ep = rootProject.property("EP")
+            wuffDir = new File(rootDir, ep)
+            localMavenRepositoryDir = new File(wuffDir, 'm2_repository')
+        }
     }
     if (name == 'cn.com.agree.ab.a4.client') {
         def sourcePath = 'src/cn/com/agree/ab/a4/client/'
