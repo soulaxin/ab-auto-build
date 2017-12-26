@@ -43,6 +43,41 @@ if (hasProperty("V")) {
 
 ext.product_list = ['abc', 'abs'] as List
 ext.eclipse_bundles = ['cn.com.agree.cocktail', 'cn.com.agree.ab.a4.client.gui.adore'] as List
+ext.upload_bundles = [
+        "cn.com.agree.ab.a4.client.adore.aft",
+        "cn.com.agree.ab.a4.client.device",
+        "cn.com.agree.ab.a4.client.gui.adore.picture",
+        "cn.com.agree.ab.a4.client.gui.adore",
+        "cn.com.agree.ab.a4.client.preference",
+        "cn.com.agree.ab.a4.client.resource",
+        "cn.com.agree.ab.a4.pub.adr",
+        "cn.com.agree.ab.a4.pub.alr",
+        "cn.com.agree.ab.a4.pub.auf",
+        "cn.com.agree.ab.a4.pub.communication.mina",
+        "cn.com.agree.ab.a4.pub.communication",
+        "cn.com.agree.ab.a4.pub.contextconfigurator",
+        "cn.com.agree.ab.a4.pub.data",
+        "cn.com.agree.ab.a4.pub.distinct",
+        "cn.com.agree.ab.a4.pub.engine",
+        "cn.com.agree.ab.a4.pub.exception",
+        "cn.com.agree.ab.a4.pub.extension",
+        "cn.com.agree.ab.a4.pub.lfc.pinyin",
+        "cn.com.agree.ab.a4.pub.lfc",
+        "cn.com.agree.ab.a4.pub.lucene",
+        "cn.com.agree.ab.a4.pub.monitor",
+        "cn.com.agree.ab.a4.pub.mpt",
+        "cn.com.agree.ab.a4.pub.preferences",
+        "cn.com.agree.ab.a4.pub.prerequisite",
+        "cn.com.agree.ab.a4.pub.resource",
+        "cn.com.agree.ab.a4.pub.runtime.platform",
+        "cn.com.agree.ab.a4.pub.runtime",
+        "cn.com.agree.ab.a4.pub.tad",
+        "cn.com.agree.ab.a4.pub.trade",
+        "cn.com.agree.commons.csv",
+        "cn.com.agree.commons.encrypt",
+        "cn.com.agree.commons.util",
+        "cn.com.agree.adore2"
+] as List
 
 subprojects {
     repositories {
@@ -153,5 +188,33 @@ subprojects {
                 into 'cn/com/agree/international'
             }
         }
+    }
+
+    if (rootProject.ext.upload_bundles.contains(name)) {
+        apply plugin: 'maven'
+        group = 'cn.com.agree'
+        String agree_repo = "http://192.9.200.153:8081/nexus/content/repositories/product_release/"
+        String repo = agree_repo
+        if (rootProject.hasProperty("remoteRepo")) {
+            repo = agree_repo + "${remoteRepo}/"
+        }
+        if (rootProject.hasProperty("localRepo")) {
+            repo = "file://C:/tmp/repos/${localRepo}"
+        }
+        uploadArchives {
+            repositories {
+                mavenDeployer {
+                    pom*.whenConfigured { pom -> pom.dependencies.clear() }
+                    repository(url: repo)
+                }
+            }
+        }
+    }
+}
+
+task upload_bundles {
+    group 'upload'
+    rootProject.ext.upload_bundles.forEach { bundle ->
+        dependsOn childProjects.get(bundle).uploadArchives
     }
 }
