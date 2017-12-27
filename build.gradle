@@ -214,7 +214,7 @@ subprojects {
 
 task upload_bundles {
     group 'upload'
-    rootProject.ext.upload_bundles.forEach { bundle ->
+    rootProject.ext.upload_bundles.each { bundle ->
         dependsOn childProjects.get(bundle).uploadArchives
     }
 }
