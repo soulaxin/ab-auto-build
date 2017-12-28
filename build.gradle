@@ -2,7 +2,7 @@ import java.nio.charset.Charset
 
 buildscript {
     repositories {
-        mavenLocal()
+//        mavenLocal()
 //        mavenCentral()
 //        jcenter()
         maven {
@@ -81,7 +81,7 @@ ext.upload_bundles = [
 
 subprojects {
     repositories {
-        mavenLocal()
+//        mavenLocal()
 //        mavenCentral()
 //        jcenter()
         maven {
@@ -205,7 +205,9 @@ subprojects {
             repositories {
                 mavenDeployer {
                     pom*.whenConfigured { pom -> pom.dependencies.clear() }
-                    repository(url: repo)
+                    repository(url: repo) {
+                        authentication(userName: "admin", password: "admin123")
+                    }
                 }
             }
         }
