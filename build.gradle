@@ -191,7 +191,10 @@ subprojects {
     }
 
     if (rootProject.ext.upload_bundles.contains(name)) {
-        apply plugin: 'maven'
+        apply plugin: 'maven-publish'
+        task sourceJar(type: Jar) {
+            from sourceSets.main.allJava
+        }
         group = 'cn.com.agree'
         String agree_repo = "http://192.9.200.153:8081/nexus/content/repositories/product_release/"
         String repo = agree_repo
@@ -201,12 +204,29 @@ subprojects {
         if (rootProject.hasProperty("localRepo")) {
             repo = "file://C:/tmp/repos/${localRepo}"
         }
-        uploadArchives {
+        publishing {
             repositories {
-                mavenDeployer {
-                    pom*.whenConfigured { pom -> pom.dependencies.clear() }
-                    repository(url: repo) {
-                        authentication(userName: "admin", password: "admin123")
+                maven {
+                    credentials {
+                        username "admin"
+                        password "admin123"
+                    }
+                    url repo
+                }
+            }
+            publications {
+                mavenJava(MavenPublication) {
+                    pom.withXml {
+                        Node pomNode = asNode()
+                        def node = pomNode.get("dependencies")
+                        if (node) {
+                            pomNode.remove(node)
+                        }
+                    }
+                    from components.java
+
+                    artifact sourceJar {
+                        classifier "sources"
                     }
                 }
             }
@@ -217,6 +237,6 @@ subprojects {
 task upload_bundles {
     group 'upload'
     rootProject.ext.upload_bundles.each { bundle ->
-        dependsOn childProjects.get(bundle).uploadArchives
+        dependsOn childProjects.get(bundle).publish
     }
 }
