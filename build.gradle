@@ -175,6 +175,9 @@ subprojects {
 
     if (name == 'cn.com.agree.commons.logging') {
         jar {
+            from('src/commons-logging.properties') {
+                into ''
+            }
             from('logging.properties') {
                 into ''
             }
