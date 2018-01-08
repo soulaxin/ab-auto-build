@@ -144,6 +144,12 @@ subprojects {
         }
     }
 
+    if (name == 'cn.com.agree.ab.a4.pub.communication.balance.random') {
+        dependencies {
+            compile project(':cn.com.agree.ab.a4.pub.communication')
+        }
+    }
+
     if (name == 'cn.com.agree.adore2') {
         afterEvaluate {
             def dependencies = project.configurations.getByName('compile').dependencies
