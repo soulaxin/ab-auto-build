@@ -42,7 +42,11 @@ if (hasProperty("V")) {
 }
 
 ext.product_list = ['abc', 'abs'] as List
-ext.eclipse_bundles = ['cn.com.agree.cocktail', 'cn.com.agree.ab.a4.client.gui.adore'] as List
+ext.eclipse_bundles = [
+        'cn.com.agree.cocktail',
+        'cn.com.agree.ab.a4.client.gui.adore',
+        'cn.com.agree.ab.a4.client.custom.client.ext.reportbug'
+] as List
 ext.upload_bundles = [
         "cn.com.agree.ab.a4.client.adore.aft",
         "cn.com.agree.ab.a4.client.device",
@@ -143,13 +147,6 @@ subprojects {
             compile project(':org.apache.log4j')
         }
     }
-
-    if (name == 'cn.com.agree.ab.a4.pub.communication.balance.random') {
-        dependencies {
-            compile project(':cn.com.agree.ab.a4.pub.communication')
-        }
-    }
-
     if (name == 'cn.com.agree.adore2') {
         afterEvaluate {
             def dependencies = project.configurations.getByName('compile').dependencies

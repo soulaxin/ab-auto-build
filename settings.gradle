@@ -4,9 +4,9 @@ def mappings = [
         "adore": "cn.com.agree.adore2"
 ]
 
-def filters = ["\\..*", "Api", "App*", "DaLianBank", "EVS", "HuiShangYinHang",
+def filters = ["\\..*", "Api", "App*", "DaLianBank", "HuiShangYinHang",
         "LTS_Core", "Tools", "ZhangJiaGang", "Doc", "Deprecated",
-        "build", "gradle", "jiangnan", ".*\\.ads\\..*", "wuff",
+        "build", "gradle", "jiangnan", "wuff",
         "eclipse_plugins", "KunShanNongShang", "ZhangJiaGang", "ZhengZhouYinHang",
         "DaLianBank"
 ]
