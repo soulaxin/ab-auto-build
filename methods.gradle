@@ -231,6 +231,18 @@ if (ext) {
 //                    def rule = '.*[a-zA-Z2]_.*'
 //                    ext.methods.filterProperties(configFile, 'osgi.bundles', [rule])
                 }
+            },
+            getPlugins: { productFile ->
+                def allPlugins = []
+                if (productFile instanceof String) {
+                    productFile = new File(productFile)
+                }
+                def product = new XmlParser().parse(productFile)
+                def plugins = product.plugins.plugin
+                plugins.each { plugin ->
+                    allPlugins.add plugin.attributes().get("id")
+                }
+                return allPlugins
             }
     ]
 }

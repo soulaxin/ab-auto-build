@@ -243,3 +243,30 @@ task upload_bundles {
         dependsOn childProjects.get(bundle).publish
     }
 }
+
+apply from: new File(rootDir, 'methods.gradle')
+if (!ext.has("methods")) {
+    return
+}
+
+def addProductDep(File product, Project target) {
+    def plugins = ext.methods.getPlugins(product)
+
+    for (def p : plugins) {
+        def proj = subprojects.find { it.name == p && it.name != "org.eclipse.osgi" }
+        if (proj != null) {
+            println target.name + " add dep: " + p
+            target.dependencies.add 'compile', project(":" + p)
+        }
+    }
+}
+
+afterEvaluate {
+    File absDir = project(':cn.com.agree.ab.a4.server').projectDir
+    File abs = new File(absDir, "abs.product")
+    addProductDep(abs, project(":abs"))
+
+    File adoreDir = project(':cn.com.agree.ab.a4.client.gui.adore').projectDir
+    File adore = new File(adoreDir, "abc_adore.product")
+    addProductDep(adore, project(":abc"))
+}
