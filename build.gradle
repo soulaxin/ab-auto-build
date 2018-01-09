@@ -16,13 +16,13 @@ buildscript {
         classpath "org.akhikhl.unpuzzle:unpuzzle-plugin:0.0.22"
         classpath "commons-configuration:commons-configuration:1.10"
 
-//        def dir = new File(rootDir, 'wuff/libs/wuff-plugin/build')
-//        def clazz = new File(dir, 'classes/main')
-//        def resource = new File(dir, 'resources/main')
-//        classpath files(clazz, resource)
+        def dir = new File(rootDir, 'wuff/libs/wuff-plugin/build')
+        def clazz = new File(dir, 'classes/main')
+        def resource = new File(dir, 'resources/main')
+        classpath files(clazz, resource)
 
-        def wuff_plugins = new File(rootDir, 'plugins')
-        classpath files(new File(wuff_plugins, 'wuff-plugin-0.0.20.1.jar'))
+//        def wuff_plugins = new File(rootDir, 'plugins')
+//        classpath files(new File(wuff_plugins, 'wuff-plugin-0.0.20.1.jar'))
 
         classpath "se.bjurr.gitchangelog:git-changelog-gradle-plugin:1.53"
     }
@@ -133,20 +133,20 @@ subprojects {
             }
         }
 
-        if (rootProject.ext.eclipseVersion == '4.7.1a') {
-            afterEvaluate {
-                project.dependencies.add 'compile', "${eclipseMavenGroup}:org.apache.batik.util:+"
-                project.dependencies.add 'compile', "${eclipseMavenGroup}:org.eclipse.osgi.util:+"
-                project.dependencies.add 'compile', "${eclipseMavenGroup}:org.eclipse.e4.core.di.extensions.supplier:+"
-            }
-        }
+//        if (rootProject.ext.eclipseVersion == '4.7.1a') {
+//            afterEvaluate {
+//                project.dependencies.add 'compile', "${eclipseMavenGroup}:org.apache.batik.util:+"
+//                project.dependencies.add 'compile', "${eclipseMavenGroup}:org.eclipse.osgi.util:+"
+//                project.dependencies.add 'compile', "${eclipseMavenGroup}:org.eclipse.e4.core.di.extensions.supplier:+"
+//            }
+//        }
     }
 
-    if (name == 'cn.com.agree.commons.csv' || name == 'cn.com.agree.ab.a4.pub.extension.eclipse') {
-        dependencies {
-            compile project(':org.apache.log4j')
-        }
-    }
+//    if (name == 'cn.com.agree.commons.csv' || name == 'cn.com.agree.ab.a4.pub.extension.eclipse') {
+//        dependencies {
+//            compile project(':org.apache.log4j')
+//        }
+//    }
     if (name == 'cn.com.agree.adore2') {
         afterEvaluate {
             def dependencies = project.configurations.getByName('compile').dependencies
@@ -155,18 +155,18 @@ subprojects {
         }
     }
 
-    if (name == 'cn.com.agree.ab.a4.client.web' || name == 'cn.com.agree.ab.a4.server.web') {
-        afterEvaluate {
-            project.dependencies.add 'compile', "${eclipseMavenGroup}:org.eclipse.jetty.security:+"
-            project.dependencies.add 'compile', "${eclipseMavenGroup}:javax.el:+"
-        }
-    }
+//    if (name == 'cn.com.agree.ab.a4.client.web' || name == 'cn.com.agree.ab.a4.server.web') {
+//        afterEvaluate {
+//            project.dependencies.add 'compile', "${eclipseMavenGroup}:org.eclipse.jetty.security:+"
+//            project.dependencies.add 'compile', "${eclipseMavenGroup}:javax.el:+"
+//        }
+//    }
 
-    if (name == 'cn.com.agree.ab.a4.server') {
-        afterEvaluate {
-            project.dependencies.add 'compile', "${eclipseMavenGroup}:org.eclipse.update.configurator:+"
-        }
-    }
+//    if (name == 'cn.com.agree.ab.a4.server') {
+//        afterEvaluate {
+//            project.dependencies.add 'compile', "${eclipseMavenGroup}:org.eclipse.update.configurator:+"
+//        }
+//    }
 
     if (name == 'cn.com.agree.cocktail') {
         jar {
@@ -251,19 +251,27 @@ apply from: new File(rootDir, 'methods.gradle')
 if (!ext.has("methods")) {
     return
 }
-
-def addProductDep(File product, Project target) {
-    def plugins = ext.methods.getPlugins(product)
-
-    for (def p : plugins) {
-        def proj = subprojects.find { it.name == p && it.name != "org.eclipse.osgi" }
-        if (proj != null) {
-            println target.name + " add dep: " + p
-            target.dependencies.add 'compile', project(":" + p)
-        }
+apply plugin: 'org.akhikhl.wuff.osgi-bundle'
+wuff {
+    selectedEclipseVersion = rootProject.ext.eclipseVersion
+    if (rootProject.hasProperty("EP")) {
+        String ep = rootProject.property("EP")
+        wuffDir = new File(rootDir, ep)
+        localMavenRepositoryDir = new File(wuffDir, 'm2_repository')
     }
 }
-
+def addProductDep(File product, Project target) {
+    def plugins = ext.methods.getPlugins(product)
+    for (def p : plugins) {
+        def proj = subprojects.find { it.name == p }
+        if (proj != null) {
+            target.dependencies.add 'compile', project(":${p}")
+        } else {
+            target.dependencies.add 'compile', "${eclipseMavenGroup}:${p}:+"
+        }
+        println target.name + " add dep: " + p
+    }
+}
 afterEvaluate {
     File absDir = project(':cn.com.agree.ab.a4.server').projectDir
     File abs = new File(absDir, "abs.product")
