@@ -78,6 +78,8 @@ def beforeArchiveProduct() {
             File plugins = new File(file, 'plugins')
 
             ext.methods.deleteBundle('org.eclipse.osgi_.*-\\d+.jar', plugins)
+            //不知道为什么多出这个插件
+            ext.methods.deleteBundle('spring_.*\\d+.jar', plugins)
             // 先删除在复制
             if (rootProject.ext.eclipseVersion == '4.7.1a') {
                 ext.methods.copyResources(['org.eclipse.osgi_3.12.0.v20171026-1932-agree.jar'], new File(rootDir, 'plugins'), plugins)
