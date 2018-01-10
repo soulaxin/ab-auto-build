@@ -16,13 +16,13 @@ buildscript {
         classpath "org.akhikhl.unpuzzle:unpuzzle-plugin:0.0.22"
         classpath "commons-configuration:commons-configuration:1.10"
 
-        def dir = new File(rootDir, 'wuff/libs/wuff-plugin/build')
-        def clazz = new File(dir, 'classes/main')
-        def resource = new File(dir, 'resources/main')
-        classpath files(clazz, resource)
+//        def dir = new File(rootDir, 'wuff/libs/wuff-plugin/build')
+//        def clazz = new File(dir, 'classes/main')
+//        def resource = new File(dir, 'resources/main')
+//        classpath files(clazz, resource)
 
-//        def wuff_plugins = new File(rootDir, 'plugins')
-//        classpath files(new File(wuff_plugins, 'wuff-plugin-0.0.20.1.jar'))
+        def wuff_plugins = new File(rootDir, 'plugins')
+        classpath files(new File(wuff_plugins, 'wuff-plugin-0.0.20.1.jar'))
 
         classpath "se.bjurr.gitchangelog:git-changelog-gradle-plugin:1.53"
     }
