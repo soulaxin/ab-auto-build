@@ -1,0 +1,469 @@
+import com.alibaba.fastjson.JSONObject
+import org.apache.commons.io.FileUtils
+import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.diff.DiffEntry
+import org.eclipse.jgit.lib.ObjectReader
+import org.eclipse.jgit.lib.PersonIdent
+import org.eclipse.jgit.lib.Repository
+import org.eclipse.jgit.revwalk.RevCommit
+import org.eclipse.jgit.revwalk.RevTree
+import org.eclipse.jgit.storage.file.FileRepositoryBuilder
+import org.eclipse.jgit.treewalk.AbstractTreeIterator
+import org.eclipse.jgit.treewalk.CanonicalTreeParser
+
+import java.text.SimpleDateFormat
+
+buildscript {
+    repositories {
+//        mavenCentral()
+        maven {
+            url 'http://192.9.200.153:8081/nexus/content/groups/public/'
+        }
+    }
+    dependencies {
+        classpath "org.eclipse.jgit:org.eclipse.jgit:+"
+        classpath "commons-io:commons-io:+"
+        classpath "com.alibaba:fastjson:+"
+    }
+}
+ext {
+    ENCODING = "UTF-8"
+    WORK_DIR = "deltas"
+    FORMAT = "yyyyMMddHHmmss"
+    LatestVersion = "latest.version"
+}
+
+if (rootProject.hasProperty("deltasDir")) {
+    ext.WORK_DIR = rootProject.deltasDir
+}
+
+/**
+ * 生成更新了代码的插件git log，位于当前工程的build目录下
+ * @param project 项目代码根目录
+ * @param interval 开始日期往前多少个interval天数之间的差量
+ * @param begin 开始的日期
+ *
+ * @return 返回差量更新列表，key为commitId，value为commit信息
+ */
+JSONObject generateDelta(File projectFile, File outputFile, int interval, Date begin = null) {
+    JSONObject commitMap = new JSONObject()
+
+    String projectName = projectFile.name
+    if (projectFile == null || !projectFile.exists()) {
+        println "project ${projectName} NOT FOUND!"
+        return commitMap
+    }
+
+    File outputDir = new File(outputFile, ext.WORK_DIR as String)
+    if (outputDir == null || !outputDir.exists()) {
+        outputDir.mkdirs()
+    }
+    String latestVersionName = projectName + "." + (ext.LatestVersion as String)
+    File latestVersionFile = new File(outputDir, latestVersionName)
+    String latestVersion = ""
+    if (latestVersionFile.exists()) {
+        latestVersion = FileUtils.readFileToString(latestVersionFile, ext.ENCODING)
+    }
+    println "project ${projectName} latest version is: ${latestVersion}"
+
+    File gitDir = new File(projectFile, ".git")
+    if (!gitDir.exists()) {
+        println "project ${projectName} NO GIT DIR!"
+        return commitMap
+    }
+
+    SimpleDateFormat format = new SimpleDateFormat(ext.FORMAT as String)
+    Date endDate = begin
+    if (endDate == null) {
+        endDate = Calendar.getInstance().time
+    }
+    Calendar calendar = new Calendar.Builder().setInstant(endDate).build()
+    calendar.add(Calendar.DATE, 0 - interval)
+    Date startDate = calendar.time
+
+    String start = format.format(startDate)
+    String end = format.format(endDate)
+
+    if (latestVersion != null && !latestVersion.isEmpty()) {
+        try {
+            Date latestDate = format.parse(latestVersion)
+            if (latestDate >= endDate) {
+                println "project ${projectName} plugin delta had latested->latest: ${latestVersion}, you: ${end}"
+                return commitMap
+            }
+        } catch (Exception e) {
+            println "latest.version fomat[${ext.FORMAT}] error, your value is: ${latestVersion}"
+        }
+    }
+    println "generate changelog for ${projectName}: between ${start} ~ ${end}"
+
+    FileRepositoryBuilder repositoryBuilder = new FileRepositoryBuilder()
+    Repository repository = repositoryBuilder.setGitDir(gitDir)
+            .readEnvironment().findGitDir().setMustExist(true).build()
+    Git git = new Git(repository)
+    Iterator<RevCommit> lastOne = git.log().call().iterator()
+    Iterator<RevCommit> secondLast = git.log().call().iterator()
+    if (secondLast.hasNext()) {
+        secondLast.next()
+    } else {
+        println "at least had two commit"
+        return commitMap
+    }
+    while (lastOne.hasNext()) {
+        RevCommit newCommit = lastOne.next()
+        RevCommit oldCommit = secondLast.next()
+        PersonIdent newCommitterIdent = newCommit.getCommitterIdent()
+        PersonIdent newAuthorIdent = newCommit.getAuthorIdent()
+        Date newCommitDate = newCommitterIdent.getWhen()
+        if (endDate != null && endDate < newCommitDate) {// 提交日期比设定的结束日期晚，就不记录了
+            continue
+        }
+        if (startDate != null && startDate > newCommitDate) {// 提交日期比设定的开始日期早，就不再往前记录了
+            break
+        }
+
+        String commitId = newCommit.getName()
+        String commitMsg = newCommit.getShortMessage()
+        String commitMessage = newCommit.getFullMessage()
+
+        String authorName = newAuthorIdent.getName()
+        String authorEmail = newAuthorIdent.getEmailAddress()
+        String authorWhen = newAuthorIdent.getWhen().format(ext.FORMAT as String)
+
+        String committerName = newCommitterIdent.getName()
+        String committerEmail = newCommitterIdent.getEmailAddress()
+        String committerWhen = newCommitterIdent.getWhen().format(ext.FORMAT as String)
+
+        JSONObject commitJson = new JSONObject()
+        commitJson.put("commitId", commitId)
+        commitJson.put("commitMsg", commitMsg)
+        commitJson.put("commitMessage", commitMessage)
+
+        commitJson.put("authorName", authorName)
+        commitJson.put("authorEmail", authorEmail)
+        commitJson.put("authorWhen", authorWhen)
+
+        commitJson.put("committerName", committerName)
+        commitJson.put("committerEmail", committerEmail)
+        commitJson.put("committerWhen", committerWhen)
+        List<JSONObject> commits = commitMap.get("commits")
+        if (commits == null) {// 一个差量包含多个提交
+            commits = new ArrayList<>()
+            commitMap.put("commits", commits)
+        }
+        commits.add(commitJson)
+
+        AbstractTreeIterator newTreeParser = prepareTreeParser(repository, newCommit)
+        AbstractTreeIterator oldTreeParser = prepareTreeParser(repository, oldCommit)
+        List<DiffEntry> diffEntries = git.diff().setNewTree(newTreeParser).setOldTree(oldTreeParser).call()
+        for (DiffEntry entry : diffEntries) {
+            // 两个提交间的文件差别
+            String changeType = entry.getChangeType().name()[0]
+            String filePath = entry.getNewPath()
+            JSONObject fileDiff = new JSONObject()
+            fileDiff.put("changeType", changeType)
+            fileDiff.put("filePath", filePath)
+            List<JSONObject> fileDiffs = commitJson.get("fileDiffs")
+            if (fileDiffs == null) {// 一个提交包含多个文件的修改
+                fileDiffs = new ArrayList<>()
+                commitJson.put("fileDiffs", fileDiffs)
+            }
+            fileDiffs.add(fileDiff)
+            List<JSONObject> plugins = commitJson.get("plugins")
+            if (plugins == null) {// 一个提交包含包含多个插件的修改
+                plugins = new ArrayList<>()
+                commitJson.put("plugins", plugins)
+            }
+
+            // 遍历diff文件所在的父目录,获取diff文件所属工程
+            for (File diff = new File(projectFile, filePath).getParentFile();
+                 diff != projectFile;
+                 diff = diff.getParentFile()
+            ) {
+                String pluginName = getPluginName(diff)
+                if (pluginName != null && pluginName) {
+                    boolean exist = false
+                    for (JSONObject json : plugins) {
+                        String pN = json.get("pluginName")
+                        if (pN == pluginName) {
+                            exist = true
+                            break
+                        }
+                    }
+                    if (!exist) {// 文件修改造成需要更新的插件列表
+                        JSONObject json = new JSONObject()
+                        json.put("pluginName", pluginName)
+                        json.put("pluginPath", filePath)
+                        plugins.add(json)
+                    } else {// 该插件已修改过一次，已存在列表里
+                        continue
+                    }
+                }
+            }
+        }
+    }
+    commitMap.put("beginVersion", start)
+    commitMap.put("latestVersion", end)
+    commitMap.put("targetName", projectName)
+    FileUtils.writeStringToFile(latestVersionFile, end, ext.ENCODING, false)
+    return commitMap
+}
+
+String getPluginName(File projectFile) {
+    if (!projectFile.exists()) {
+        return ""
+    }
+    File dotProject = null
+    if (projectFile.isDirectory()) {
+        dotProject = new File(projectFile, '.project')
+    } else if (projectFile.isFile()) {
+        if (projectFile.getName() == ".project") {
+            dotProject = projectFile
+        }
+    }
+    if (dotProject == null || !dotProject.exists()) {
+        return ""
+    }
+
+    Node parser = new XmlParser().parse(dotProject)
+    NodeList natures = parser.natures.nature
+    if (natures.size() < 1) {
+        return ""
+    }
+    NodeList name = parser.name
+    String value = name.text()
+    return value
+}
+
+AbstractTreeIterator prepareTreeParser(Repository repository, RevCommit commit) throws IOException {
+    RevTree tree = commit.getTree()
+    CanonicalTreeParser treeParser = new CanonicalTreeParser()
+    ObjectReader reader = repository.newObjectReader()
+    treeParser.reset(reader, tree.getId())
+//    reader.close()
+    return treeParser
+}
+
+String generateSummary(JSONObject delta) {
+    StringBuilder builder = new StringBuilder()
+    if (builder == null || delta == null || delta.isEmpty()) {
+        return
+    }
+    List<JSONObject> commits = delta.get("commits")
+    if (commits == null || commits.isEmpty()) {
+        return
+    }
+    String beginVersion = delta.get("beginVersion")
+    String endVersion = delta.get("latestVersion")
+    builder.append("生成差量日期为: ${beginVersion} to ${endVersion}")
+    builder.append("\r\n")
+    for (JSONObject commit : commits) {
+        String commitId = commit.get("commitId")
+        String commitMsg = commit.get("commitMsg")
+        String authorName = commit.get("authorName")
+        String authorEmail = commit.get("authorEmail")
+        String authorWhen = commit.get("authorWhen")
+        builder.append("CommitId: ${commitId}")
+        builder.append("\r\n")
+        builder.append("Author: ${authorName}<${authorEmail}> ${authorWhen}")
+        builder.append("\r\n")
+        builder.append(commitMsg)
+        builder.append("\r\n")
+        List<JSONObject> plugins = commit.get("plugins")
+        if (plugins != null && !plugins.isEmpty()) {
+            builder.append("该提交需要更新的插件列表:")
+            builder.append("\r\n")
+        }
+        for (JSONObject plugin : plugins) {
+            builder.append(plugin.get("pluginName"))
+            builder.append("\r\n")
+        }
+        builder.append("============================")
+        builder.append("\r\n")
+    }
+    return builder.toString()
+}
+
+String generateChangelog(JSONObject delta) {
+    StringBuilder builder = new StringBuilder()
+    if (builder == null || delta == null || delta.isEmpty()) {
+        return
+    }
+    List<JSONObject> commits = delta.get("commits")
+    if (commits == null || commits.isEmpty()) {
+        return
+    }
+    String beginVersion = delta.get("beginVersion")
+    String endVersion = delta.get("latestVersion")
+    builder.append("生成差量日期为: ${beginVersion} to ${endVersion}")
+    builder.append("\r\n")
+    for (JSONObject commit : commits) {
+        String commitId = commit.get("commitId")
+        String commitMessage = commit.get("commitMessage")
+        String authorName = commit.get("authorName")
+        String authorEmail = commit.get("authorEmail")
+        String authorWhen = commit.get("authorWhen")
+        builder.append("CommitId: ${commitId}")
+        builder.append("\r\n")
+        builder.append("Author: ${authorName}<${authorEmail}> ${authorWhen}")
+        builder.append("\r\n")
+        builder.append(commitMessage)
+        builder.append("\r\n")
+        List<JSONObject> plugins = commit.get("plugins")
+        if (plugins != null && !plugins.isEmpty()) {
+            builder.append("该提交需要更新的插件列表:")
+            builder.append("\r\n")
+        }
+        for (JSONObject plugin : plugins) {
+            builder.append(plugin.get("pluginName"))
+            builder.append("\r\n")
+        }
+        List<JSONObject> fileDiffs = commit.get("fileDiffs")
+        if (fileDiffs != null && !fileDiffs.isEmpty()) {
+            builder.append("该提交的文件更新列表:")
+            builder.append("\r\n")
+        }
+        for (JSONObject fileDiff : fileDiffs) {
+            String changeType = fileDiff.get("changeType")
+            String filePath = fileDiff.get("filePath")
+            builder.append("${changeType} ${filePath}")
+            builder.append("\r\n")
+        }
+        builder.append("============================")
+        builder.append("\r\n")
+    }
+    return builder.toString()
+}
+
+void summaryReport(JSONObject delta, File workDir) {
+    String content = generateSummary(delta)
+    String targetName = delta.get("targetName")
+    File file = new File(workDir, "${targetName}_summary.txt")
+    FileUtils.writeStringToFile(file, content, ext.ENCODING)
+}
+
+void changelogReport(JSONObject delta, File workDir) {
+    String content = generateChangelog(delta)
+    String targetName = delta.get("targetName")
+    File file = new File(workDir, "${targetName}_changelog.txt")
+    FileUtils.writeStringToFile(file, content, ext.ENCODING)
+}
+
+List<JSONObject> pluginDelta(JSONObject delta) {
+    List<JSONObject> all = new ArrayList<>()
+    if (delta == null || delta.isEmpty()) {
+        return all
+    }
+    List<JSONObject> commits = delta.get("commits")
+    if (commits == null || commits.isEmpty()) {
+        return all
+    }
+    for (JSONObject commit : commits) {
+        List<JSONObject> plugins = commit.get("plugins")
+        for (JSONObject plugin : plugins) {
+            String pluginName = plugin.get("pluginName")
+            boolean exist = false
+            for (JSONObject json : all) {
+                String pN = json.get("pluginName")
+                if (pN == pluginName) {
+                    exist = true
+                    break
+                }
+            }
+            if (!exist) {
+                all.add(plugin)
+            }
+        }
+    }
+    return all
+}
+
+File abGit = new File(rootDir, "ab")
+File adoreGit = new File(rootDir, "adore")
+int cycle = 1
+if (rootProject.hasProperty("CycleDays")) {
+    cycle = rootProject.CycleDays as int
+}
+String beginDate = ''
+if (rootProject.hasProperty("BeginDate")) {
+    beginDate = rootProject.BeginDate as String
+}
+String qualifier = ''
+if (rootProject.hasProperty("Qualifier")) {
+    qualifier = rootProject.Qualifier as String
+}
+
+task bundleBuild {
+    group 'build'
+    SimpleDateFormat format = new SimpleDateFormat(project.ext.FORMAT as String)
+    Date date = null
+    if (beginDate != null && !beginDate.isEmpty()) {
+        try {
+            date = format.parse(beginDate)
+        } catch (Exception e) {
+            e.printStackTrace()
+        }
+    }
+    JSONObject delta = generateDelta(abGit, project.buildDir, cycle, date)
+    String lastVersion = delta.get("latestVersion")
+    if (qualifier != null && !qualifier.isEmpty()) {//使用固定目录
+        lastVersion = qualifier
+    }
+    File workDir = new File(project.buildDir, project.ext.WORK_DIR + "/${lastVersion}" as String)
+
+    List<JSONObject> p = pluginDelta(delta)
+    JSONObject adore = generateDelta(adoreGit, project.buildDir, cycle, date)
+    List<JSONObject> pAdore = pluginDelta(adore)
+    if (!pAdore.isEmpty()) {
+        p.addAll(pAdore)
+        summaryReport(adore, workDir)
+        changelogReport(adore, workDir)
+    }
+    if (p.isEmpty()) {
+        return
+    }
+    summaryReport(delta, workDir)
+    changelogReport(delta, workDir)
+    p.each { bundle ->
+        String pluginName = bundle.get("pluginName")
+        Project pluginProject = rootProject.childProjects.get(pluginName)
+        if (pluginProject) {
+            dependsOn pluginProject.build
+        }
+    }
+    doLast {
+        p.each { bundle ->
+            String pluginName = bundle.get("pluginName")
+            String pluginPath = bundle.get("pluginPath")
+            String pluginPathNew = pluginPath.substring(0, pluginPath.indexOf("/"))
+            Project pluginProject = rootProject.childProjects.get(pluginName)
+            if (pluginProject) {
+                copyBundle(pluginProject.buildDir, new File(workDir, "bundles/" + pluginPathNew))
+            } else {
+                println "Bundle: ${pluginName} NOT FOUND! path is ${pluginPath}"
+            }
+        }
+    }
+}
+
+apply from: new File(rootDir, 'methods.gradle')
+def copyBundle(File source, File target) {
+    if (!ext.has("methods")) {
+        return false
+    }
+
+    File output = new File(source, 'libs')
+    File[] files = output.listFiles()
+    Arrays.sort(files, new Comparator<File>() {
+        @Override
+        int compare(File o1, File o2) {
+            return (int) (o2.lastModified() - o1.lastModified())
+        }
+    })
+    if (files.length > 0) {
+        File file = files[0] // get latest directory
+        if (file.exists() && file.getName().endsWith(".jar")) {
+            ext.methods.copyResources([file.getName()], output, target)
+        }
+    }
+}

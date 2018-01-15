@@ -4,11 +4,11 @@ def mappings = [
         "adore": "cn.com.agree.adore2"
 ]
 
-def filters = ["\\..*", "Api", "App*", "DaLianBank", "HuiShangYinHang",
-        "LTS_Core", "Tools", "ZhangJiaGang", "Doc", "Deprecated",
-        "build", "gradle", "jiangnan", "wuff",
-        "eclipse_plugins", "KunShanNongShang", "ZhangJiaGang", "ZhengZhouYinHang",
-        "DaLianBank"
+def filters = [
+        "\\..*", "Api", "App*", "LTS_Core", "Tools","Doc", "Deprecated",
+//        "ZhangJiaGang", "DaLianBank", "HuiShangYinHang", "GuangDongNongXin",
+//        "jiangnan", "KunShanNongShang", "ZhangJiaGang", "ZhengZhouYinHang",
+        "build", "gradle", "wuff", "eclipse_plugins",
 ]
 
 if (ext.has("methods")) {
@@ -33,4 +33,5 @@ if (ext.has("methods")) {
 }
 include 'abs'
 include 'abc'
+include 'delta'
 

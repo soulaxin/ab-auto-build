@@ -45,7 +45,8 @@ ext.product_list = ['abc', 'abs'] as List
 ext.eclipse_bundles = [
         'cn.com.agree.cocktail',
         'cn.com.agree.ab.a4.client.gui.adore',
-        'cn.com.agree.ab.a4.client.custom.client.ext.reportbug'
+        'cn.com.agree.ab.a4.client.custom.client.ext.reportbug',
+        'cn.com.agree.ab.a4.client.advanceupdate.launcher.impl'
 ] as List
 ext.upload_bundles = [
         "cn.com.agree.ab.a4.client.adore.aft",
@@ -100,6 +101,11 @@ subprojects {
 //    targetCompatibility = 1.7
 
     [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+
+    if (name == 'delta') {
+        return
+    }
+
     if (rootProject.ext.product_list.contains(project.name)) {
         apply from: new File(rootDir, 'changelog.gradle')
 
@@ -251,25 +257,16 @@ apply from: new File(rootDir, 'methods.gradle')
 if (!ext.has("methods")) {
     return
 }
-apply plugin: 'org.akhikhl.wuff.osgi-bundle'
-wuff {
-    selectedEclipseVersion = rootProject.ext.eclipseVersion
-    if (rootProject.hasProperty("EP")) {
-        String ep = rootProject.property("EP")
-        wuffDir = new File(rootDir, ep)
-        localMavenRepositoryDir = new File(wuffDir, 'm2_repository')
-    }
-}
 def addProductDep(File product, Project target) {
     def plugins = ext.methods.getPlugins(product)
     for (def p : plugins) {
         def proj = subprojects.find { it.name == p }
         if (proj != null) {
+            println target.name + " add dep: " + p
             target.dependencies.add 'compile', project(":${p}")
         } else {
-            target.dependencies.add 'compile', "${eclipseMavenGroup}:${p}:+"
+//            target.dependencies.add 'compile', "${eclipseMavenGroup}:${p}:+"
         }
-        println target.name + " add dep: " + p
     }
 }
 afterEvaluate {
