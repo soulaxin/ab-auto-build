@@ -139,13 +139,13 @@ subprojects {
             }
         }
 
-//        if (rootProject.ext.eclipseVersion == '4.7.1a') {
-//            afterEvaluate {
-//                project.dependencies.add 'compile', "${eclipseMavenGroup}:org.apache.batik.util:+"
-//                project.dependencies.add 'compile', "${eclipseMavenGroup}:org.eclipse.osgi.util:+"
-//                project.dependencies.add 'compile', "${eclipseMavenGroup}:org.eclipse.e4.core.di.extensions.supplier:+"
-//            }
-//        }
+        if (rootProject.ext.eclipseVersion == '4.7.1a') {
+            afterEvaluate {
+                project.dependencies.add 'compile', "${eclipseMavenGroup}:org.apache.batik.util:+"
+                project.dependencies.add 'compile', "${eclipseMavenGroup}:org.eclipse.osgi.util:+"
+                project.dependencies.add 'compile', "${eclipseMavenGroup}:org.eclipse.e4.core.di.extensions.supplier:+"
+            }
+        }
     }
 
 //    if (name == 'cn.com.agree.commons.csv' || name == 'cn.com.agree.ab.a4.pub.extension.eclipse') {
@@ -161,18 +161,18 @@ subprojects {
         }
     }
 
-//    if (name == 'cn.com.agree.ab.a4.client.web' || name == 'cn.com.agree.ab.a4.server.web') {
-//        afterEvaluate {
-//            project.dependencies.add 'compile', "${eclipseMavenGroup}:org.eclipse.jetty.security:+"
-//            project.dependencies.add 'compile', "${eclipseMavenGroup}:javax.el:+"
-//        }
-//    }
+    if (name == 'cn.com.agree.ab.a4.client.web' || name == 'cn.com.agree.ab.a4.server.web') {
+        afterEvaluate {
+            project.dependencies.add 'compile', "${eclipseMavenGroup}:org.eclipse.jetty.security:+"
+            project.dependencies.add 'compile', "${eclipseMavenGroup}:javax.el:+"
+        }
+    }
 
-//    if (name == 'cn.com.agree.ab.a4.server') {
-//        afterEvaluate {
-//            project.dependencies.add 'compile', "${eclipseMavenGroup}:org.eclipse.update.configurator:+"
-//        }
-//    }
+    if (name == 'cn.com.agree.ab.a4.server') {
+        afterEvaluate {
+            project.dependencies.add 'compile', "${eclipseMavenGroup}:org.eclipse.update.configurator:+"
+        }
+    }
 
     if (name == 'cn.com.agree.cocktail') {
         jar {
